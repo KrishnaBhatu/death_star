@@ -15,6 +15,7 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   nav_msgs
   message_generation
+  dynamic_global_planner
 )
 
 ## System dependencies are found with CMake's conventions
@@ -76,15 +77,11 @@ find_package(catkin REQUIRED COMPONENTS
 #generate_messages(
 #  DEPENDENCIES
 #  std_msgs
-#)
-
-
-
-   
+#)   
 
 catkin_package(
   INCLUDE_DIRS include
-#  LIBRARIES dynamic_global_planner
+  #LIBRARIES dynamic_global_planner
   CATKIN_DEPENDS roscpp std_msgs nav_msgs message_runtime
 #  DEPENDS system_lib
 )

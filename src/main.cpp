@@ -2,6 +2,7 @@
 #include <iostream>
 #include <string>
 #include "nav_msgs/Odometry.h"
+#include "death_star/ds_node.h"
 
 
 int main(int argv, char **argc) {
