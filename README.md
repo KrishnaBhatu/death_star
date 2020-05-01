@@ -1,3 +1,3 @@
 # death star
 
-A* but smarted
+A* but smarter
