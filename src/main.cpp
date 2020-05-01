@@ -10,7 +10,9 @@ int main(int argv, char **argc) {
   ros::NodeHandle nh;
   ros::Rate loop_rate(10);
   std::string ns = ros::this_node::getNamespace();
-  
+  DeathStar dstar;
+  ros::spin();
+  return 0; 
 }
 
  

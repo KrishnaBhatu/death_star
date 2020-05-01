@@ -1,8 +1,38 @@
-#include "../include/ds_node.h"
+#include "death_star/ds_node.h"
 
 DeathStar::DeathStar()
 {
 	ROS_INFO("Deathstar created");
+    graph_sub = nh.subscribe < dynamic_global_planner::Graph> ("graph_topic", 10, &DeathStar::graph_callback, this);
+}
+
+void DeathStar::graph_callback(const dynamic_global_planner::Graph::ConstPtr& msg)
+{
+    ROS_INFO("Graph received");
+    ROS_INFO("Nodes Size: %d", msg->mesh.size());
+    ROS_INFO("Neighbours Size: %d", msg->mesh_neighbour.size());
+
+
+    for(int i=0; i<msg->mesh.size(); i++)
+    {
+        Node* graph_node = new Node();
+        graph_node->setX(msg->mesh[i].x);
+        graph_node->setY(msg->mesh[i].y);
+        graph_node->weight = msg->mesh[i].weight;
+        for(int j=0; j<msg->mesh_neighbour[i].neighbours.size(); j++)
+        {
+            Node* nn_node = new Node();
+            nn_node->setX(msg->mesh_neighbour[i].neighbours[j].x);
+            nn_node->setY(msg->mesh_neighbour[i].neighbours[j].y);
+            nn_node->weight = msg->mesh_neighbour[i].neighbours[j].weight;
+            graph_node->neighbours.push_back(nn_node);
+        }
+
+        // Append this graph_node to DS_Node's graph
+        graph.push_back(graph_node);
+    }
+
+    ROS_INFO("Graph Successfully Created: %d", graph.size());
 }
 
 bool DeathStar::PathGenerator(death_star::smartPlan::Request &req, death_star::smartPlan::Response &resp)
@@ -10,7 +40,7 @@ bool DeathStar::PathGenerator(death_star::smartPlan::Request &req, death_star::s
 	findShortestPath(req.x_start, req.y_start, req.x_goal, req.y_goal);
 	if(curr_path.size() < 0) return false;
 	nav_msgs::Path path_planned;
-	for(auto a: curr_plan)
+	for(auto a: curr_path)
 	{
 		geometry_msgs::PoseStamped temp_pose;
 		temp_pose.pose.position.x = a->getX();

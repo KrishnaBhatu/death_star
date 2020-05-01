@@ -4,4 +4,6 @@
     	<node pkg="map_server" name="map_server" type="map_server" args="$(arg map_file)"/>
 
     	<node name="stage" pkg="stage_ros" type="stageros" args="/home/krishna/Siddhesh/Latest-Warehouse-DWA/src/dwa/stage/AddverbMap.world" />
+
+    	<node pkg="death_star" type="global_planner" name="global_planner" output="screen" />
 </launch>

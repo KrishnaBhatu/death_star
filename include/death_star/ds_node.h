@@ -3,10 +3,14 @@
 
 #include <ros/ros.h>
 #include <vector>
+#include <queue>
 #include "dynamic_global_planner/graph_node.h"
 #include "nav_msgs/Path.h"
 #include "geometry_msgs/PoseStamped.h"
 #include "death_star/smartPlan.h"
+#include "dynamic_global_planner/Graph.h"
+#include "dynamic_global_planner/Node.h"
+#include "dynamic_global_planner/Neighbour.h"
 
 class DeathStar
 {
@@ -36,6 +40,10 @@ public:
 	std::vector<Node*> graph;
 	std::vector<Node*> curr_path;
 	ros::NodeHandle nh;
+
+	ros::Subscriber graph_sub;
+
+	void graph_callback(const dynamic_global_planner::Graph::ConstPtr& msg);
 };
 
 #endif // INCLUDE_DS_NODE_H_

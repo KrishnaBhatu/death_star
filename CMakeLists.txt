@@ -93,7 +93,7 @@ include_directories(include
   ${OpenCV_INCLUDE_DIRS}
 )
 
-add_executable(global_planner src/main.cpp)
+add_executable(global_planner src/main.cpp src/ds_node.cpp)
 
 
 target_link_libraries(global_planner
