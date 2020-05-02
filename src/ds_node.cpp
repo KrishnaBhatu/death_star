@@ -8,6 +8,7 @@ DeathStar::DeathStar()
 
 void DeathStar::graph_callback(const dynamic_global_planner::Graph::ConstPtr& msg)
 {
+    subscriber_callback_executing = true;
     ROS_INFO("Graph received");
     ROS_INFO_STREAM("Nodes Size: " << msg->mesh.size());
     ROS_INFO_STREAM("Neighbours Size: " <<msg->mesh_neighbour.size());
@@ -40,10 +41,12 @@ void DeathStar::graph_callback(const dynamic_global_planner::Graph::ConstPtr& ms
     }
 
     ROS_INFO_STREAM("Graph Successfully Created: " << graph.size());
+    subscriber_callback_executing = false;
 }
 
 bool DeathStar::PathGenerator(death_star::smartPlan::Request &req, death_star::smartPlan::Response &resp)
 {
+    ROS_INFO_STREAM("Is subscriber on --->" << subscriber_callback_executing);
 	findShortestPath(req.x_start, req.y_start, req.x_goal, req.y_goal);
 	ROS_INFO_STREAM("Current Path Length: - " << curr_path.size());
 	//for(auto a: curr_path) ROS_INFO_STREAM(a->getX() << ", " << a->getY());
@@ -84,6 +87,7 @@ Node* DeathStar::findNearestNode(float x, float y)
 
 void DeathStar::findShortestPath(float x_start, float y_start, float x_goal, float y_goal)
 {
+    while(subscriber_callback_executing){}
 	if(graph.size() <= 0) return;
     Node* start_node = findNearestNode(x_start, y_start);
     Node* goal_node = findNearestNode(x_goal, y_goal);
@@ -91,6 +95,7 @@ void DeathStar::findShortestPath(float x_start, float y_start, float x_goal, flo
     ROS_INFO_STREAM("Goal - " << goal_node->getX() << ", " << goal_node->getY());
     //Easy method will be to greedy (nearest_neighbour + Eucledian to goal)
     std::queue<std::tuple<float, float, float>> visited;
+    std::set<std::tuple<float, float, float>> already_gone;
     std::tuple<float, float, float> start_tup(start_node->getX(), start_node->getY(), start_node->weight);
     std::tuple<float, float, float> goal_tup(goal_node->getX(), goal_node->getY(), goal_node->weight);
     visited.push(start_tup);
@@ -101,18 +106,23 @@ void DeathStar::findShortestPath(float x_start, float y_start, float x_goal, flo
         std::tuple<float, float, float> curr = visited.front();
         visited.pop();
         curr_path.push_back(curr);
-		//ROS_INFO_STREAM(curr->getX() << ", " << curr->getY());
+        already_gone.insert(curr);
+		ROS_INFO_STREAM(std::get<0>(curr) << ", " << std::get<1>(curr));
         float min_h = std::numeric_limits<float>::max();
         int min_c = 0;
         if(curr == goal_tup) break;
-		//ROS_INFO_STREAM("Neighbour size " << curr->neighbours.size());
+
+		ROS_INFO_STREAM("Neighbour size " << graph_dict[curr].size());
         for(int i = 0; i < graph_dict[curr].size(); i++)
         {
-            float curr_val  = std::get<2>(graph_dict[curr][i]) + getEucledianDistance(std::get<0>(goal_tup), std::get<1>(goal_tup), std::get<0>(graph_dict[curr][i]), std::get<1>(graph_dict[curr][i]));
-            if(curr_val < min_h)
+            if(already_gone.find(graph_dict[curr][i]) == already_gone.end())
             {
-                min_h = curr_val;
-                min_c = i; 
+                float curr_val  = std::get<2>(graph_dict[curr][i]) + getEucledianDistance(std::get<0>(goal_tup), std::get<1>(goal_tup), std::get<0>(graph_dict[curr][i]), std::get<1>(graph_dict[curr][i]));
+                if(curr_val < min_h)
+                {
+                    min_h = curr_val;
+                    min_c = i; 
+                }
             }
         }
 

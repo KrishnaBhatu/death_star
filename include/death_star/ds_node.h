@@ -48,7 +48,7 @@ public:
 	ros::NodeHandle nh;
 
 	ros::Subscriber graph_sub;
-
+	bool subscriber_callback_executing;
 	void graph_callback(const dynamic_global_planner::Graph::ConstPtr& msg);
 };
 
