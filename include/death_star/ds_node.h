@@ -4,6 +4,7 @@
 #include <ros/ros.h>
 #include <vector>
 #include <queue>
+#include <map>
 #include "dynamic_global_planner/graph_node.h"
 #include "nav_msgs/Path.h"
 #include "geometry_msgs/PoseStamped.h"
@@ -11,6 +12,8 @@
 #include "dynamic_global_planner/Graph.h"
 #include "dynamic_global_planner/Node.h"
 #include "dynamic_global_planner/Neighbour.h"
+#include "opencv2/highgui.hpp"
+#include "opencv2/imgproc.hpp"
 
 class DeathStar
 {
@@ -23,7 +26,8 @@ public:
 	DeathStar(ros::NodeHandle& n)
 	{
 		nh = n;
-		path_service = nh.advertiseService("/gen_path", &DeathStar::PathGenerator, this);
+		path_service = nh.advertiseService("gen_path", &DeathStar::PathGenerator, this);
+		graph_sub = nh.subscribe < dynamic_global_planner::Graph> ("graph_topic", 10, &DeathStar::graph_callback, this);
 	}
 
 	ros::ServiceServer path_service;
@@ -35,10 +39,12 @@ public:
 	void findShortestPath(float x_start, float y_start, float x_goal, float y_goal);
 
 	Node* findNearestNode(float x, float y);
+	void drawGraphonImage();
 
 	// Local copy of the graph
 	std::vector<Node*> graph;
-	std::vector<Node*> curr_path;
+	std::map<std::tuple<float, float, float>, std::vector<std::tuple<float, float, float>>> graph_dict;
+	std::vector<std::tuple<float, float, float>> curr_path;
 	ros::NodeHandle nh;
 
 	ros::Subscriber graph_sub;
