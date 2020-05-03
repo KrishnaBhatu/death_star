@@ -69,6 +69,7 @@ bool DeathStar::PathGenerator(death_star::smartPlan::Request &req, death_star::s
 	}
 	drawGraphonImage();
 	resp.Path = path_planned;
+    findPathCost(true);
 	return true;
 }
 
@@ -227,4 +228,29 @@ void DeathStar::drawGraphonImage()
         cv::destroyAllWindows();
     }
     return;
+}
+
+void DeathStar::findPathCost(bool called_by_service)
+{
+    int len = curr_path.size() - 1;
+    float decay_factor = 0.95;
+    if(!called_by_service)
+    {
+        path_cost = 0;
+        while(len != 0)
+        {
+            path_cost += (pow(decay_factor, len))*std::get<2>(curr_path[len]);
+            len--;
+        }
+    }
+    else
+    {
+        path_cost_init = 0;
+        while(len != 0)
+        {
+            path_cost_init += (pow(decay_factor, len))*std::get<2>(curr_path[len]);
+            len--;
+        }
+    }
+    
 }
