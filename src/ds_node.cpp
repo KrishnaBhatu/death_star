@@ -125,7 +125,7 @@ void DeathStar::findShortestPath(float x_start, float y_start, float x_goal, flo
         if(old_weight.find(temp_check) != old_weight.end()) std::get<2>(curr) = old_weight[temp_check];
         
         already_gone.insert(curr);
-		ROS_INFO_STREAM(std::get<0>(curr) << ", " << std::get<1>(curr));
+		//ROS_INFO_STREAM(std::get<0>(curr) << ", " << std::get<1>(curr));
         float min_h = std::numeric_limits<float>::max();
         int min_c = 0;
         if(std::get<0>(curr) == std::get<0>(goal_tup) && std::get<1>(curr) == std::get<1>(goal_tup))
@@ -144,7 +144,7 @@ void DeathStar::findShortestPath(float x_start, float y_start, float x_goal, flo
             }
             break;
         }
-		ROS_INFO_STREAM("Neighbour size " << graph_dict[curr].size());
+		//ROS_INFO_STREAM("Neighbour size " << graph_dict[curr].size());
         for(int i = 0; i < graph_dict[curr].size(); i++)
         {
             if(child_parent.find(graph_dict[curr][i]) == child_parent.end())
