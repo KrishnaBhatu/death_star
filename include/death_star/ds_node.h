@@ -14,6 +14,8 @@
 #include "dynamic_global_planner/Neighbour.h"
 #include "opencv2/highgui.hpp"
 #include "opencv2/imgproc.hpp"
+#include "std_msgs/Bool.h"
+
 
 class DeathStar
 {
@@ -28,7 +30,9 @@ public:
 		ROS_INFO("DS Created");
 		nh = n;
 		path_service = nh.advertiseService("gen_path", &DeathStar::PathGenerator, this);
-		graph_sub = nh.subscribe < dynamic_global_planner::Graph> ("/graph_topic", 10, &DeathStar::graph_callback, this);
+
+		graph_sub = nh.subscribe < dynamic_global_planner::Graph> ("graph_topic", 10, &DeathStar::graph_callback, this);
+		path_cost_pub = nh.advertise<std_msgs::Bool>("path_cost", 1);
 	}
 
 	ros::ServiceServer path_service;
@@ -41,14 +45,18 @@ public:
 
 	Node* findNearestNode(float x, float y);
 	void drawGraphonImage();
+	void findPathCost(bool called_by_service);
 
 	// Local copy of the graph
 	std::vector<Node*> graph;
 	std::map<std::tuple<float, float, float>, std::vector<std::tuple<float, float, float>>> graph_dict;
 	std::vector<std::tuple<float, float, float>> curr_path;
+	float path_cost;
+	float path_cost_init;
 	ros::NodeHandle nh;
 
 	ros::Subscriber graph_sub;
+	ros::Publisher path_cost_pub;
 	bool subscriber_callback_executing;
 	void graph_callback(const dynamic_global_planner::Graph::ConstPtr& msg);
 };
