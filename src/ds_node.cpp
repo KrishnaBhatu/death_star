@@ -170,7 +170,7 @@ void DeathStar::drawGraphonImage()
             y = y1;
         }
         cv::imshow("Graph", img);
-        cv::waitKey(0);
+        cv::waitKey(1000);
         cv::destroyAllWindows();
     }
     return;

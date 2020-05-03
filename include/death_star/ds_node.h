@@ -25,9 +25,10 @@ public:
 
 	DeathStar(ros::NodeHandle& n)
 	{
+		ROS_INFO("DS Created");
 		nh = n;
 		path_service = nh.advertiseService("gen_path", &DeathStar::PathGenerator, this);
-		graph_sub = nh.subscribe < dynamic_global_planner::Graph> ("graph_topic", 10, &DeathStar::graph_callback, this);
+		graph_sub = nh.subscribe < dynamic_global_planner::Graph> ("/graph_topic", 10, &DeathStar::graph_callback, this);
 	}
 
 	ros::ServiceServer path_service;
