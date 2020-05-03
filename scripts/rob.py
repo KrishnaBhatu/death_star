@@ -392,6 +392,7 @@ def main():
 
             config.aux_stall_count += 1
             if config.aux_stall_count > 800:
+
                 if len(config.path) > 2:
                     del config.path[0:1]
                     config.goalX = config.path[0][0]
@@ -400,14 +401,13 @@ def main():
                     config.goalX = config.goalFinalX
                     config.goalY = config.goalFinalY
                     config.final_assigned = True
-
+                print("Waypoint skipped by ", BOT_NAME)
                 #print("GoalAdj: ", config.goalX, " ", config.goalY)
-                if not config.final_assigned:
-                    config.aux_stall_count = 0
+                config.aux_stall_count = 0
 
             if config.aux_stall_count > 10000:
                 # situation is hopeless
-                print("it's hopeless")
+                print("it's hopeless for ", BOT_NAME)
                 config.aux_stall_count = 0
                 config.start_assigned = False
                 config.final_assigned = False
@@ -430,7 +430,7 @@ def main():
                     config.goalX = config.goalFinalX
                     config.goalY = config.goalFinalY
                 del config.path[0:1]
-                print("GoalWaypoint: ", config.goalX, " ", config.goalY)
+                #print("GoalWaypoint: ", config.goalX, " ", config.goalY)
 
             else:
                 # if at goal then stay there until new goal published
@@ -468,7 +468,7 @@ def main():
                 print("Goal received from WM: ", config.goalFinalX, " ", config.goalFinalY)
                 print("Starting from ", config.x, " ", config.y)
                 path_death_star = config.smartPlanRequest(config.x, config.y, config.goalFinalX, config.goalFinalY)
-                #print("PATH RECEIVEDDDDDDDDDDDDDDDDDDDDDDDD: ", path_death_star.Path.poses)
+                print("PATH RECEIVED by: ", BOT_NAME)
                 del config.path[:]
                 if path_death_star:
                     for p in path_death_star.Path.poses:
@@ -482,7 +482,7 @@ def main():
                 config.job_start = time.time()
                 config.path_received = False
                 config.mapreceived = True
-                print("Goal x:", config.goalX, "Goal y:", config.goalY)
+                #print("Goal x:", config.goalX, "Goal y:", config.goalY)
             else:
                 disp = BOT_NAME + " is Done"
                 print(disp);

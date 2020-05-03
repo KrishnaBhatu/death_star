@@ -17,9 +17,9 @@ DeathStar::DeathStar()
 void DeathStar::graph_callback(const dynamic_global_planner::Graph::ConstPtr& msg)
 {
     subscriber_callback_executing = true;
-    ROS_INFO("Graph received");
-    ROS_INFO_STREAM("Nodes Size: " << msg->mesh.size());
-    ROS_INFO_STREAM("Neighbours Size: " <<msg->mesh_neighbour.size());
+    //ROS_INFO("Graph received");
+    //ROS_INFO_STREAM("Nodes Size: " << msg->mesh.size());
+    //ROS_INFO_STREAM("Neighbours Size: " <<msg->mesh_neighbour.size());
 
     graph.clear();
     graph_dict.clear();
@@ -48,13 +48,13 @@ void DeathStar::graph_callback(const dynamic_global_planner::Graph::ConstPtr& ms
         graph.push_back(graph_node);
     }
 
-    ROS_INFO_STREAM("Graph Successfully Created: " << graph.size());
+    //ROS_INFO_STREAM("Graph Successfully Created: " << graph.size());
     subscriber_callback_executing = false;
 }
 
 bool DeathStar::PathGenerator(death_star::smartPlan::Request &req, death_star::smartPlan::Response &resp)
 {
-    ROS_INFO_STREAM("Is subscriber on --->" << subscriber_callback_executing);
+    //ROS_INFO_STREAM("Is subscriber on --->" << subscriber_callback_executing);
 	findShortestPath(req.x_start, req.y_start, req.x_goal, req.y_goal);
 	ROS_INFO_STREAM("Current Path Length: - " << curr_path.size());
 	//for(auto a: curr_path) ROS_INFO_STREAM(a->getX() << ", " << a->getY());
@@ -103,8 +103,8 @@ void DeathStar::findShortestPath(float x_start, float y_start, float x_goal, flo
     if(graph.size() <= 0) return;
     Node* start_node = findNearestNode(x_start, y_start);
     Node* goal_node = findNearestNode(x_goal, y_goal);
-    ROS_INFO_STREAM("Start - " << start_node->getX() << ", " << start_node->getY());
-    ROS_INFO_STREAM("Goal - " << goal_node->getX() << ", " << goal_node->getY());
+    //ROS_INFO_STREAM("Start - " << start_node->getX() << ", " << start_node->getY());
+    //ROS_INFO_STREAM("Goal - " << goal_node->getX() << ", " << goal_node->getY());
     //Easy method will be to greedy (nearest_neighbour + Eucledian to goal)
     std::priority_queue<std::tuple<float, float, float>, std::vector<std::tuple<float, float, float>>, Compare> visited_pq;
     //std::queue<std::tuple<float, float, float>> visited;
@@ -215,7 +215,7 @@ void DeathStar::drawGraphonImage()
         y = 605 - y; 
         for(auto a: final)
         {
-            ROS_INFO_STREAM(x << ", " << y);
+            //ROS_INFO_STREAM(x << ", " << y);
             int x1 = (int)(std::get<0>(a)*10);
             int y1 = (int)(std::get<1>(a)*10);
             y1 = 605 - y1;
@@ -232,25 +232,30 @@ void DeathStar::drawGraphonImage()
 
 void DeathStar::findPathCost(bool called_by_service)
 {
-    int len = curr_path.size() - 1;
-    float decay_factor = 0.95;
-    if(!called_by_service)
+    if(curr_path.size() > 0)
     {
-        path_cost = 0;
-        while(len != 0)
-        {
-            path_cost += (pow(decay_factor, len))*std::get<2>(curr_path[len]);
-            len--;
-        }
-    }
-    else
-    {
-        path_cost_init = 0;
-        while(len != 0)
-        {
-            path_cost_init += (pow(decay_factor, len))*std::get<2>(curr_path[len]);
-            len--;
-        }
+    	int len = curr_path.size() - 1;
+    	float decay_factor = 0.95;
+    	if(!called_by_service)
+    	{
+        	path_cost = 0;
+        	while(len != 0)
+        	{
+            		path_cost += (pow(decay_factor, len))*std::get<2>(curr_path[len]);
+            		len--;
+        	}
+    	}
+    	else
+    	{
+        	path_cost_init = 0;
+        	while(len != 0)
+        	{
+            	path_cost_init += (pow(decay_factor, len))*std::get<2>(curr_path[len]);
+            	len--;
+        	}
+    	}
+	path_cost = 0;
+	path_cost_init = 0;
     }
     
 }

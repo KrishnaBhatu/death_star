@@ -31,7 +31,7 @@ public:
 		nh = n;
 		path_service = nh.advertiseService("gen_path", &DeathStar::PathGenerator, this);
 
-		graph_sub = nh.subscribe < dynamic_global_planner::Graph> ("graph_topic", 10, &DeathStar::graph_callback, this);
+		graph_sub = nh.subscribe < dynamic_global_planner::Graph> ("/graph_topic", 10, &DeathStar::graph_callback, this);
 		path_cost_pub = nh.advertise<std_msgs::Bool>("path_cost", 1);
 	}
 
