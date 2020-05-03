@@ -1,5 +1,13 @@
 #include "death_star/ds_node.h"
 
+struct Compare
+{
+    bool operator()(const std::tuple<float, float, float>& a, const std::tuple<float, float, float>& b) const
+    {
+        return std::get<2>(a) > std::get<2>(b);
+    }
+};
+
 DeathStar::DeathStar()
 {
 	ROS_INFO("Deathstar created");
@@ -88,45 +96,90 @@ Node* DeathStar::findNearestNode(float x, float y)
 void DeathStar::findShortestPath(float x_start, float y_start, float x_goal, float y_goal)
 {
     while(subscriber_callback_executing){}
-	if(graph.size() <= 0) return;
+    std::map<std::tuple<float, float>, float> old_weight;
+    std::map<std::tuple<float, float>, float> curr_g_cost;
+	
+    if(graph.size() <= 0) return;
     Node* start_node = findNearestNode(x_start, y_start);
     Node* goal_node = findNearestNode(x_goal, y_goal);
     ROS_INFO_STREAM("Start - " << start_node->getX() << ", " << start_node->getY());
     ROS_INFO_STREAM("Goal - " << goal_node->getX() << ", " << goal_node->getY());
     //Easy method will be to greedy (nearest_neighbour + Eucledian to goal)
-    std::queue<std::tuple<float, float, float>> visited;
+    std::priority_queue<std::tuple<float, float, float>, std::vector<std::tuple<float, float, float>>, Compare> visited_pq;
+    //std::queue<std::tuple<float, float, float>> visited;
     std::set<std::tuple<float, float, float>> already_gone;
+    std::map<std::tuple<float, float, float>, std::tuple<float, float, float>> child_parent;
+    //std::set<std::tuple<float, float>> already_gone_no_weight;
     std::tuple<float, float, float> start_tup(start_node->getX(), start_node->getY(), start_node->weight);
     std::tuple<float, float, float> goal_tup(goal_node->getX(), goal_node->getY(), goal_node->weight);
-    visited.push(start_tup);
+    std::tuple<float, float> temp_check(std::get<0>(start_tup), std::get<1>(start_tup));
+    curr_g_cost.insert({temp_check, std::get<2>(start_tup)});
+    visited_pq.push(start_tup);
     curr_path.clear();
 
-	while(visited.size() != 0)
+	while(visited_pq.size() != 0)
     {
-        std::tuple<float, float, float> curr = visited.front();
-        visited.pop();
-        curr_path.push_back(curr);
+        std::tuple<float, float, float> curr = visited_pq.top();
+        visited_pq.pop();
+        std::tuple<float, float> temp_check(std::get<0>(curr), std::get<1>(curr));
+        if(old_weight.find(temp_check) != old_weight.end()) std::get<2>(curr) = old_weight[temp_check];
+        
         already_gone.insert(curr);
 		ROS_INFO_STREAM(std::get<0>(curr) << ", " << std::get<1>(curr));
         float min_h = std::numeric_limits<float>::max();
         int min_c = 0;
-        if(curr == goal_tup) break;
-
+        if(std::get<0>(curr) == std::get<0>(goal_tup) && std::get<1>(curr) == std::get<1>(goal_tup))
+        {
+            curr_path.push_back(curr);
+            while(1)
+            {
+                std::tuple<float, float, float> curr_tup = child_parent[curr];            
+                curr_path.push_back(curr_tup);
+                curr = curr_tup;
+                if(std::get<0>(curr) == std::get<0>(start_tup) && std::get<1>(curr) == std::get<1>(start_tup))
+                {
+                    std::reverse(curr_path.begin(), curr_path.end());
+                    break;
+                }
+            }
+            break;
+        }
 		ROS_INFO_STREAM("Neighbour size " << graph_dict[curr].size());
         for(int i = 0; i < graph_dict[curr].size(); i++)
         {
+            if(child_parent.find(graph_dict[curr][i]) == child_parent.end())
+            {
+                child_parent.insert({graph_dict[curr][i], curr});
+            }
+            else
+            {
+                //Check for lowest g cost or change parent
+                std::tuple<float, float> old_par(std::get<0>(graph_dict[curr][i]), std::get<1>(graph_dict[curr][i]));
+                float old_g_cost = curr_g_cost[old_par];
+                float curr_g_cost_f = curr_g_cost[temp_check];
+                if(curr_g_cost_f < old_g_cost)
+                {
+                    //Change parent
+                    child_parent[graph_dict[curr][i]] = curr; 
+                }
+            }
+            
             if(already_gone.find(graph_dict[curr][i]) == already_gone.end())
             {
-                float curr_val  = std::get<2>(graph_dict[curr][i]) + getEucledianDistance(std::get<0>(goal_tup), std::get<1>(goal_tup), std::get<0>(graph_dict[curr][i]), std::get<1>(graph_dict[curr][i]));
+                float curr_val  = curr_g_cost[temp_check] + std::get<2>(graph_dict[curr][i]) + getEucledianDistance(std::get<0>(goal_tup), std::get<1>(goal_tup), std::get<0>(graph_dict[curr][i]), std::get<1>(graph_dict[curr][i]));
                 if(curr_val < min_h)
                 {
                     min_h = curr_val;
                     min_c = i; 
                 }
+                std::tuple<float, float> temp_w(std::get<0>(graph_dict[curr][i]), std::get<1>(graph_dict[curr][i]));
+                curr_g_cost.insert({temp_w, (std::get<2>(graph_dict[curr][i]) + curr_g_cost[temp_check])});
+                old_weight.insert({temp_w, std::get<2>(graph_dict[curr][i])});
+                std::get<2>(graph_dict[curr][i]) = curr_val;
+                visited_pq.push(graph_dict[curr][i]);
             }
+            
         }
-
-        visited.push(graph_dict[curr][min_c]);
     }
 	ROS_INFO_STREAM("Bye Bye " << curr_path.size());
 }
